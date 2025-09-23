@@ -14,5 +14,11 @@ export const ServerEnv = Effect.gen(function* () {
 		AirtableBaseId: Config.redacted(
 			Schema.Config("AIRTABLE_BASE_ID", Schema.NonEmptyString),
 		),
+		SupabaseUrl: Config.redacted(
+			Schema.Config("NEXT_PUBLIC_SUPABASE_URL", Schema.NonEmptyString),
+		),
+		SupabaseKey: Config.redacted(
+			Schema.Config("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", Schema.NonEmptyString),
+		),
 	});
 }).pipe(Effect.withSpan("lib/utils/env.ts/ServerEnv"));

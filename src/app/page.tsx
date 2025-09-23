@@ -1,10 +1,16 @@
+import { Effect, Schema } from "effect";
 import { AirtableDb } from "@/lib/utils/airtable";
+import { Application } from "@/schema/airtable";
 
 export default async function Home() {
-	const db = AirtableDb;
+	const db = AirtableDb.pipe(Effect.runSync);
 	const applications = db.table("Applications");
-	// const emails = await applications.select({ fields: ["Email"] }).firstPage();
-	// console.log(emails);
+	const applicationsList = await applications.select().firstPage();
+	const decoded = applicationsList
+		.slice(0, 5)
+		.map((application) =>
+			Schema.decodeSync(Application)(application.fields),
+		);
 
-	return <>Hello world!</>;
+	return <>{JSON.stringify(decoded, null, 2)}</>;
 }
