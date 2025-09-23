@@ -18,7 +18,10 @@ export const ServerEnv = Effect.gen(function* () {
 			Schema.Config("NEXT_PUBLIC_SUPABASE_URL", Schema.NonEmptyString),
 		),
 		SupabaseKey: Config.redacted(
-			Schema.Config("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", Schema.NonEmptyString),
+			Schema.Config(
+				"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+				Schema.NonEmptyString,
+			),
 		),
 	});
 }).pipe(Effect.withSpan("lib/utils/env.ts/ServerEnv"));

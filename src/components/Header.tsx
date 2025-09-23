@@ -1,10 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Header() {
+	const supabase = createClient();
+
 	return (
-		<header className="w-screen flex justify-center items-center border-b-2">
-			<div className="max-w-content w-full px-12 py-4">
+		<header className="w-screen flex justify-center items-center px-12 border-b-2">
+			<div className="max-w-content w-full py-4">
 				<Link href="/" className="font-bold text-lg text-black">
 					Cal Hacks Grader
 				</Link>
@@ -38,13 +43,19 @@ export default function Header() {
 					</Link>
 				</Button>
 
-				<Button asChild variant="default">
-					<Link
-						href="/lookup"
-						className="font-medium text-base text-neutral-900"
-					>
-						Sign in
-					</Link>
+				<Button
+					variant="default"
+					onClick={async () => {
+						await supabase.auth.signInWithOAuth({
+							provider: "google",
+							options: {
+								redirectTo: `${window.location.origin}/auth/callback`,
+							},
+						});
+					}}
+					className="font-medium text-sm"
+				>
+					Sign in
 				</Button>
 			</nav>
 		</header>

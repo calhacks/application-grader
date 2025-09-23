@@ -1,16 +1,15 @@
 import Airtable, { type FieldSet, type Table } from "airtable";
 import {
-	Array,
 	Console,
 	Data,
 	Effect,
-	Match,
+	Array as EffectArray,
 	Option,
 	Redacted,
 	Schema,
 } from "effect";
-import { ServerEnv } from "@/lib/utils/env";
-import { createClient, SupabaseUser } from "@/lib/utils/supabase";
+import { ServerEnv } from "@/lib/env/server";
+import { SupabaseUser } from "@/lib/utils/supabase";
 import { Application } from "@/schema/airtable";
 
 Effect.gen(function* () {
@@ -108,7 +107,7 @@ export const findFirstUniqueHackerApplication = Effect.fn(
 		return yield* Effect.fail(new NoApplicationFound());
 	}
 
-	const result = Array.findFirst(
+	const result = EffectArray.findFirst(
 		applications,
 		(application) =>
 			!!application.email && !reviewedEmails.has(application.email),
