@@ -4,9 +4,11 @@ import {
 	type ColumnDef,
 	flexRender,
 	getCoreRowModel,
+	getSortedRowModel,
+	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
-import { use } from "react";
+import { use, useState } from "react";
 import {
 	Table,
 	TableBody,
@@ -24,10 +26,17 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
 	const data = use(props.data);
 
+	const [sorting, setSorting] = useState<SortingState>([]);
+
 	const table = useReactTable({
 		data,
 		columns: props.columns,
 		getCoreRowModel: getCoreRowModel(),
+		onSortingChange: setSorting,
+		getSortedRowModel: getSortedRowModel(),
+		state: {
+			sorting,
+		},
 	});
 
 	return (
