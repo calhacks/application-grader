@@ -1,15 +1,17 @@
 import Airtable from "airtable";
 import {
+	Chunk,
 	Console,
 	Effect,
 	Array as EffectArray,
 	Option,
+	Random,
 	Redacted,
 	Schema,
 } from "effect";
 import { ServerEnv } from "@/lib/env/server";
 import { SupabaseUser } from "@/lib/utils/supabase";
-import { Application, type ApplicationType } from "@/schema/airtable";
+import { Application, type ApplicationType, Review } from "@/schema/airtable";
 
 Effect.gen(function* () {
 	const { AirtablePat } = yield* ServerEnv;
@@ -30,57 +32,90 @@ export const AirtableDb = Effect.gen(function* () {
 
 export const findNewHackerApplication = Effect.gen(function* () {
 	const user = yield* SupabaseUser;
-
 	const db = yield* AirtableDb;
 	const applicationsTable = db.table("Applications");
 	const reviewsTable = db.table("Reviews");
 
-	const reviewedEmails = yield* Effect.tryPromise(() =>
-		reviewsTable
-			.select({
-				fields: ["email"],
-				filterByFormula: `{reviewer_id} = '${user.id}'`,
-			})
-			.all(),
+	const reviews = yield* Effect.tryPromise(() =>
+		reviewsTable.select().all(),
 	).pipe(
 		Effect.flatMap((records) =>
 			Effect.allSuccesses(
 				records.map((record) =>
-					Schema.decodeUnknown(Schema.String)(record.fields.email),
+					Schema.decodeUnknown(Review)(record.fields),
 				),
 			),
 		),
-		Effect.map((emails) => new Set(emails)),
 	);
 
+	const previouslyReviewedEmails = new Set(
+		reviews
+			.filter((review) => review.reviewerId === user.id)
+			.map((review) => review.email),
+	);
+
+	const reviewDecisionCounts = reviews.reduce((count, review) => {
+		const reviewCount = count.get(review.email);
+		if (!reviewCount) {
+			count.set(review.email, {
+				accepts: review.decision === "accept" ? 1 : 0,
+				rejects: review.decision === "reject" ? 1 : 0,
+			});
+			return count;
+		}
+		if (review.decision === "accept") {
+			reviewCount.accepts += 1;
+		}
+		if (review.decision === "reject") {
+			reviewCount.rejects += 1;
+		}
+		return count;
+	}, new Map<string, { accepts: number; rejects: number }>());
+
+	const completedEmails = new Set(
+		Array.from(reviewDecisionCounts.entries())
+			.filter(([_, { accepts, rejects }]) => accepts >= 2 || rejects >= 1)
+			.map(([email]) => email),
+	);
+
+	const excludedEmails = previouslyReviewedEmails.union(completedEmails);
+
 	return yield* Effect.async<Option.Option<ApplicationType>>((resume) => {
-		applicationsTable.select({ pageSize: 100 }).eachPage(
-			(records, paginate) => {
-				Effect.allSuccesses(
-					records.map((record) =>
-						Schema.decodeUnknown(Application)(record.fields),
-					),
-				).pipe(
-					Effect.map(
-						EffectArray.findFirst((application) =>
-							application.email
-								? !reviewedEmails.has(application.email)
-								: false,
+		applicationsTable
+			.select({
+				filterByFormula: `{Role} = "Hacker"`,
+				pageSize: 100,
+			})
+			.eachPage(
+				(records, paginate) => {
+					Effect.allSuccesses(
+						records.map((record) =>
+							Schema.decodeUnknown(Application)(record.fields),
 						),
-					),
-					Effect.tap(
-						Option.match({
-							onNone: () => paginate(),
-							onSome: (application) =>
-								resume(
-									Effect.succeed(Option.some(application)),
-								),
-						}),
-					),
-					Effect.runPromise,
-				);
-			},
-			() => resume(Effect.succeed(Option.none())),
-		);
+					).pipe(
+						Effect.flatMap(Random.shuffle),
+						Effect.map(
+							Chunk.findFirst((application) =>
+								application.email
+									? !excludedEmails.has(application.email)
+									: false,
+							),
+						),
+						Effect.tap(
+							Option.match({
+								onNone: () => paginate(),
+								onSome: (application) =>
+									resume(
+										Effect.succeed(
+											Option.some(application),
+										),
+									),
+							}),
+						),
+						Effect.runPromise,
+					);
+				},
+				() => resume(Effect.succeed(Option.none())),
+			);
 	});
 });

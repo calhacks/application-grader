@@ -1,4 +1,4 @@
-import { Console, Effect } from "effect";
+import { Console, Data, Effect } from "effect";
 import { createClient } from "@/lib/supabase/server";
 
 export const SupabaseUser = Effect.gen(function* () {
@@ -6,8 +6,12 @@ export const SupabaseUser = Effect.gen(function* () {
 	const userResponse = yield* Effect.tryPromise(() =>
 		supabase.auth.getUser(),
 	);
-	return yield* Effect.fromNullable(userResponse.data.user);
+	return yield* Effect.fromNullable(userResponse.data.user).pipe(
+		Effect.orElseFail(() => new SupabaseUserNotFound()),
+	);
 }).pipe(
 	Effect.tapErrorCause((error) => Console.error(error)),
 	Effect.withSpan("lib/utils/supabase/SupabaseUser"),
 );
+
+class SupabaseUserNotFound extends Data.TaggedError("SupabaseUserNotFound") {}

@@ -101,3 +101,21 @@ export const Application = Schema.Struct({
 
 export type ApplicationType = typeof Application.Type;
 export type ApplicationEncoded = typeof Application.Encoded;
+
+export const Decision = Schema.Literal("accept", "reject");
+export type Decision = typeof Decision;
+
+export const Review = Schema.Struct({
+	id: Schema.Number,
+	email: Schema.String,
+	createdAt: Schema.propertySignature(Schema.String).pipe(
+		Schema.fromKey("created_at"),
+	),
+	reviewerId: Schema.propertySignature(Schema.String).pipe(
+		Schema.fromKey("reviewer_id"),
+	),
+	decision: Decision,
+});
+
+export type ReviewType = typeof Review.Type;
+export type ReviewEncoded = typeof Review.Encoded;
