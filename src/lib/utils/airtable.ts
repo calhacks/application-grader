@@ -1,7 +1,6 @@
-import Airtable, { type FieldSet, type Table } from "airtable";
+import Airtable from "airtable";
 import {
 	Console,
-	Data,
 	Effect,
 	Array as EffectArray,
 	Option,
@@ -10,7 +9,7 @@ import {
 } from "effect";
 import { ServerEnv } from "@/lib/env/server";
 import { SupabaseUser } from "@/lib/utils/supabase";
-import { Application } from "@/schema/airtable";
+import { Application, type ApplicationType } from "@/schema/airtable";
 
 Effect.gen(function* () {
 	const { AirtablePat } = yield* ServerEnv;
@@ -29,8 +28,9 @@ export const AirtableDb = Effect.gen(function* () {
 	Effect.withSpan("lib/utils/airtable"),
 );
 
-export const uniqueHackerApplication = Effect.gen(function* () {
+export const findNewHackerApplication = Effect.gen(function* () {
 	const user = yield* SupabaseUser;
+
 	const db = yield* AirtableDb;
 	const applicationsTable = db.table("Applications");
 	const reviewsTable = db.table("Reviews");
@@ -39,7 +39,7 @@ export const uniqueHackerApplication = Effect.gen(function* () {
 		reviewsTable
 			.select({
 				fields: ["email"],
-				filterByFormula: `reviewer_id = ${user.id}`,
+				filterByFormula: `{reviewer_id} = '${user.id}'`,
 			})
 			.all(),
 	).pipe(
@@ -53,75 +53,34 @@ export const uniqueHackerApplication = Effect.gen(function* () {
 		Effect.map((emails) => new Set(emails)),
 	);
 
-	let retryTimes = 0;
-	return yield* Effect.retry(
-		Effect.gen(function* () {
-			return yield* findFirstUniqueHackerApplication(
-				applicationsTable,
-				reviewedEmails,
-				retryTimes,
-			);
-		}),
-		{
-			until: (error) => {
-				if (error instanceof FailedRequest) {
-					return true;
-				}
-				if (error instanceof NoApplicationFound) {
-					return true;
-				}
-				retryTimes += 1;
-				return false;
+	return yield* Effect.async<Option.Option<ApplicationType>>((resume) => {
+		applicationsTable.select({ pageSize: 100 }).eachPage(
+			(records, paginate) => {
+				Effect.allSuccesses(
+					records.map((record) =>
+						Schema.decodeUnknown(Application)(record.fields),
+					),
+				).pipe(
+					Effect.map(
+						EffectArray.findFirst((application) =>
+							application.email
+								? !reviewedEmails.has(application.email)
+								: false,
+						),
+					),
+					Effect.tap(
+						Option.match({
+							onNone: () => paginate(),
+							onSome: (application) =>
+								resume(
+									Effect.succeed(Option.some(application)),
+								),
+						}),
+					),
+					Effect.runPromise,
+				);
 			},
-		},
-	);
-}).pipe(
-	Effect.tapErrorCause((error) => Console.error(error)),
-	Effect.withSpan("lib/utils/airtable"),
-);
-
-export const findFirstUniqueHackerApplication = Effect.fn(
-	"lib/utils/airtable/findFirstUniqueHackerApplication",
-)(function* (
-	applicationsTable: Table<FieldSet>,
-	reviewedEmails: Set<string>,
-	retryTimes: number,
-) {
-	const applicationRecords = yield* Effect.tryPromise({
-		try: () =>
-			applicationsTable
-				.select({
-					pageSize: 500,
-					offset: retryTimes * 500,
-				})
-				.firstPage(),
-		catch: () => new FailedRequest(),
-	});
-
-	const applications = yield* Effect.allSuccesses(
-		applicationRecords.map((record) =>
-			Schema.decodeUnknown(Application)(record.fields),
-		),
-	);
-	if (applications.length === 0) {
-		return yield* Effect.fail(new NoApplicationFound());
-	}
-
-	const result = EffectArray.findFirst(
-		applications,
-		(application) =>
-			!!application.email && !reviewedEmails.has(application.email),
-	);
-
-	return yield* Option.match(result, {
-		onNone: () =>
-			Effect.fail({
-				records: applicationRecords,
-			}),
-		onSome: (application) => Effect.succeed(application),
+			() => resume(Effect.succeed(Option.none())),
+		);
 	});
 });
-
-class FailedRequest extends Data.TaggedError("FailedRequest") {}
-
-class NoApplicationFound extends Data.TaggedError("NoApplicationFound") {}

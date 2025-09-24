@@ -1,17 +1,17 @@
-"use client";
-
+import { Effect, Option } from "effect";
 import Link from "next/link";
+import { AuthButton } from "@/components/header/auth-button";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
+import { SupabaseUser } from "@/lib/utils/supabase";
 
-export default function Header() {
-	const supabase = createClient();
+export default async function Header() {
+	const user = await SupabaseUser.pipe(Effect.option, Effect.runPromise);
 
 	return (
 		<header className="w-screen flex justify-center items-center px-12 border-b-2">
 			<div className="max-w-content w-full py-4">
 				<Link href="/" className="font-bold text-lg text-black">
-					Cal Hacks Grader
+					Cal Hacks 12.0 Grader
 				</Link>
 			</div>
 
@@ -43,20 +43,7 @@ export default function Header() {
 					</Link>
 				</Button>
 
-				<Button
-					variant="default"
-					onClick={async () => {
-						await supabase.auth.signInWithOAuth({
-							provider: "google",
-							options: {
-								redirectTo: `${window.location.origin}/auth/callback`,
-							},
-						});
-					}}
-					className="font-medium text-sm"
-				>
-					Sign in
-				</Button>
+				<AuthButton signedIn={Option.isSome(user)} />
 			</nav>
 		</header>
 	);
