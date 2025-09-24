@@ -1,17 +1,15 @@
-import { Console, Data, Effect } from "effect";
-import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { Data, Effect } from "effect";
 
-export const SupabaseUser = Effect.gen(function* () {
-	const supabase = yield* Effect.tryPromise(() => createClient());
-	const userResponse = yield* Effect.tryPromise(() =>
-		supabase.auth.getUser(),
-	);
-	return yield* Effect.fromNullable(userResponse.data.user).pipe(
-		Effect.orElseFail(() => new SupabaseUserNotFound()),
-	);
-}).pipe(
-	Effect.tapErrorCause((error) => Console.error(error)),
-	Effect.withSpan("lib/utils/supabase/SupabaseUser"),
+export const SupabaseUser = Effect.fn("lib/utils/supabase/SupabaseUser")(
+	function* (supabaseClient: SupabaseClient) {
+		const userResponse = yield* Effect.tryPromise(() =>
+			supabaseClient.auth.getUser(),
+		);
+		return yield* Effect.fromNullable(userResponse.data.user).pipe(
+			Effect.orElseFail(() => new SupabaseUserNotFound()),
+		);
+	},
 );
 
 class SupabaseUserNotFound extends Data.TaggedError("SupabaseUserNotFound") {}

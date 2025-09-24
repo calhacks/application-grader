@@ -2,10 +2,15 @@ import { Effect, Option } from "effect";
 import Link from "next/link";
 import { AuthButton } from "@/components/header/auth-button";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/server";
 import { SupabaseUser } from "@/lib/utils/supabase";
 
 export default async function Header() {
-	const user = await SupabaseUser.pipe(Effect.option, Effect.runPromise);
+	const supabase = await createClient();
+	const user = await SupabaseUser(supabase).pipe(
+		Effect.option,
+		Effect.runPromise,
+	);
 
 	return (
 		<header className="w-screen flex justify-center items-center px-12 border-b-2">

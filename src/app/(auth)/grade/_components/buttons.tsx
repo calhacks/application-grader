@@ -55,5 +55,11 @@ export function RejectButton(props: SubmitButtonProps) {
 }
 
 export function SkipButton() {
-	return <Button variant="outline">Skip</Button>;
+	const router = useRouter();
+
+	return (
+		<Button variant="outline" onClick={() => router.refresh()}>
+			Skip
+		</Button>
+	);
 }

@@ -16,12 +16,14 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { EventStartDate } from "@/lib/constants";
+import { createClient } from "@/lib/supabase/server";
 import { findNewHackerApplication } from "@/lib/utils/airtable";
 import { SupabaseUser } from "@/lib/utils/supabase";
 import { dateStringToDate, isAdult } from "@/lib/utils/util";
 
 export default async function Grade() {
-	const user = await SupabaseUser.pipe(Effect.runPromise);
+	const supabase = await createClient();
+	const user = await SupabaseUser(supabase).pipe(Effect.runPromise);
 	const application = await findNewHackerApplication.pipe(
 		Effect.runPromiseExit,
 	);

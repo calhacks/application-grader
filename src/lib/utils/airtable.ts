@@ -3,13 +3,13 @@ import {
 	Chunk,
 	Console,
 	Effect,
-	Array as EffectArray,
 	Option,
 	Random,
 	Redacted,
 	Schema,
 } from "effect";
 import { ServerEnv } from "@/lib/env/server";
+import { createClient } from "@/lib/supabase/server";
 import { SupabaseUser } from "@/lib/utils/supabase";
 import { Application, type ApplicationType, Review } from "@/schema/airtable";
 
@@ -31,7 +31,8 @@ export const AirtableDb = Effect.gen(function* () {
 );
 
 export const findNewHackerApplication = Effect.gen(function* () {
-	const user = yield* SupabaseUser;
+	const supabase = yield* Effect.tryPromise(() => createClient());
+	const user = yield* SupabaseUser(supabase);
 	const db = yield* AirtableDb;
 	const applicationsTable = db.table("Applications");
 	const reviewsTable = db.table("Reviews");
