@@ -9,7 +9,7 @@ import {
 	getPaginationRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { useState } from "react";
+import { use, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,17 +23,15 @@ import {
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
-	data: TData[];
+	data: Promise<TData[]>;
 }
 
-export function DataTable<TData, TValue>({
-	columns,
-	data,
-}: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
+	const data = use(props.data);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const table = useReactTable({
 		data,
-		columns,
+		columns: props.columns,
 		getCoreRowModel: getCoreRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
 		onColumnFiltersChange: setColumnFilters,
@@ -120,7 +118,7 @@ export function DataTable<TData, TValue>({
 						) : (
 							<TableRow>
 								<TableCell
-									colSpan={columns.length}
+									colSpan={props.columns.length}
 									className="h-24 text-center"
 								>
 									No results.
