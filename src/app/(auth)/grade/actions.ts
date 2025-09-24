@@ -1,7 +1,7 @@
 "use server";
 
 import { Console, Effect } from "effect";
-import { AirtableDb } from "@/lib/utils/airtable";
+import { AirtableDb, fetchHackerReviews } from "@/lib/utils/airtable";
 import type { ReviewEncoded } from "@/schema/airtable";
 
 export async function submitApplicationDecision(
@@ -13,6 +13,22 @@ export async function submitApplicationDecision(
 	Effect.gen(function* () {
 		const db = yield* AirtableDb;
 		const reviewsTable = db.table("Reviews");
+
+		const reviews = yield* fetchHackerReviews;
+		const decisions = { accept: 0, reject: 0 };
+		for (const { decision, email } of reviews) {
+			if (review.email === email) {
+				if (decision === "accept") {
+					decisions.accept += 1;
+				} else if (decision === "reject") {
+					decisions.reject += 1;
+				}
+			}
+
+			if (decisions.accept >= 2 || decisions.reject >= 1) {
+				return;
+			}
+		}
 
 		yield* Effect.tryPromise(() =>
 			reviewsTable.create([

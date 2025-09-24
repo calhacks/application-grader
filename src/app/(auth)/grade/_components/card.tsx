@@ -41,7 +41,7 @@ export function ApplicationCard(props: ApplicationCardProps) {
 		: false;
 
 	return (
-		<Card className="max-w-content w-3/4">
+		<Card className="max-w-content w-full sm:w-3/4">
 			<CardHeader>
 				<CardTitle>Hacker Application</CardTitle>
 				<CardDescription></CardDescription>

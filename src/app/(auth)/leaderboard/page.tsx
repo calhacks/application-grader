@@ -50,8 +50,8 @@ export default async function Leaderboard() {
 	);
 
 	return (
-		<main className="flex justify-center p-8">
-			<div className="max-w-content">
+		<main className="flex sm:justify-center p-8">
+			<div className="max-w-full sm:max-w-content">
 				<Suspense
 					fallback={
 						<div className="font-mono">leaderboard is loading</div>

@@ -30,7 +30,6 @@ export function AuthButton(props: AuthButtonProps) {
 		<Button
 			variant="default"
 			onClick={props.signedIn ? handleSignOut : handleSignIn}
-			className="font-medium text-sm"
 		>
 			{props.signedIn ? "Sign Out" : "Sign In"}
 		</Button>

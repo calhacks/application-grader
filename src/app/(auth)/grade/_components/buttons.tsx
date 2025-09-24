@@ -24,7 +24,12 @@ export function AcceptButton(props: SubmitButtonProps) {
 	}
 
 	return (
-		<Button variant="default" disabled={isMutating} onClick={handleAccept}>
+		<Button
+			variant="default"
+			size="sm"
+			disabled={isMutating}
+			onClick={handleAccept}
+		>
 			Accept
 		</Button>
 	);
@@ -46,6 +51,7 @@ export function RejectButton(props: SubmitButtonProps) {
 	return (
 		<Button
 			variant="destructive"
+			size="sm"
 			disabled={isMutating}
 			onClick={handleReject}
 		>
@@ -58,7 +64,7 @@ export function SkipButton() {
 	const router = useRouter();
 
 	return (
-		<Button variant="outline" onClick={() => router.refresh()}>
+		<Button variant="outline" size="sm" onClick={() => router.refresh()}>
 			Skip
 		</Button>
 	);

@@ -13,18 +13,19 @@ export default async function Header() {
 	);
 
 	return (
-		<header className="w-screen flex justify-center items-center px-12 border-b-2">
-			<div className="max-w-content w-full py-4">
-				<Link href="/" className="font-bold text-lg text-black">
-					Cal Hacks 12.0 Grader
-				</Link>
-			</div>
+		<header className="w-screen flex justify-between items-center py-4 px-2 sm:px-12 border-b-2">
+			<Link
+				href="/"
+				className="font-bold text-sm sm:text-lg text-black hidden sm:block"
+			>
+				Grader
+			</Link>
 
-			<nav className="grid grid-flow-col auto-cols-max justify-center gap-x-4">
+			<nav className="grid grid-flow-col auto-cols-max justify-center sm:gap-x-4">
 				<Button asChild variant="ghost">
 					<Link
 						href="/grade"
-						className="font-medium text-base text-neutral-900"
+						className="font-medium text-sm sm:text-base text-neutral-900"
 					>
 						Grade
 					</Link>
@@ -33,7 +34,7 @@ export default async function Header() {
 				<Button asChild variant="ghost">
 					<Link
 						href="/leaderboard"
-						className="font-medium text-base text-neutral-900"
+						className="font-medium text-sm sm:text-base text-neutral-900"
 					>
 						Leaderboard
 					</Link>
@@ -42,14 +43,14 @@ export default async function Header() {
 				<Button asChild variant="ghost">
 					<Link
 						href="/lookup"
-						className="font-medium text-base text-neutral-900"
+						className="font-medium text-sm sm:text-base text-neutral-900"
 					>
 						Lookup
 					</Link>
 				</Button>
-
-				<AuthButton signedIn={Option.isSome(user)} />
 			</nav>
+
+			<AuthButton signedIn={Option.isSome(user)} />
 		</header>
 	);
 }

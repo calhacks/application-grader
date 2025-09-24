@@ -15,7 +15,7 @@ const berkeleyMono = localFont({
 });
 
 export const metadata: Metadata = {
-	title: "H@B Grader",
+	title: "Cal Hacks 12.0 Grader",
 	description: "Ethan was not here",
 };
 
