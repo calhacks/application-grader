@@ -58,6 +58,10 @@ export function ApplicationCard(props: ApplicationCardProps) {
 							value={application.lastName}
 						/>
 						<ApplicationField
+							label="Email"
+							value={application.email}
+						/>
+						<ApplicationField
 							label="Role"
 							value={application.role}
 						/>
