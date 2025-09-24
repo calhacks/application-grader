@@ -30,7 +30,7 @@ export default async function Grade() {
 
 	return (
 		<main className="w-full h-full">
-			<div className="p-4 flex justify-center">
+			<div className="p-8 flex justify-center">
 				{Exit.match(application, {
 					onFailure: (error) => <FailureAlert error={error} />,
 					onSuccess: Option.match({

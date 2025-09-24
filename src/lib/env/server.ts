@@ -23,5 +23,8 @@ export const ServerEnv = Effect.gen(function* () {
 				Schema.NonEmptyString,
 			),
 		),
+		SupabaseSecretKey: Config.redacted(
+			Schema.Config("SUPABASE_SECRET_KEY", Schema.NonEmptyString),
+		),
 	});
 }).pipe(Effect.withSpan("lib/utils/env.ts/ServerEnv"));

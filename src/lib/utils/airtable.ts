@@ -120,3 +120,45 @@ export const findNewHackerApplication = Effect.gen(function* () {
 			);
 	});
 });
+
+export const fetchHackerApplications = Effect.fn(
+	"lib/utils/airtable/fetchHackerApplications",
+)(function* (fields?: string[]) {
+	const db = yield* AirtableDb;
+	const applicationsTable = db.table("Applications");
+
+	return yield* Effect.tryPromise(() =>
+		applicationsTable
+			.select({
+				fields: fields,
+				filterByFormula: `{Role} = "Hacker"`,
+			})
+			.all(),
+	).pipe(
+		Effect.flatMap((records) =>
+			Effect.allSuccesses(
+				records.map((record) =>
+					Schema.decodeUnknown(Application)(record.fields),
+				),
+			),
+		),
+	);
+});
+
+export const fetchHackerReviews = Effect.gen(function* () {
+	const db = yield* AirtableDb;
+	const reviewsTable = db.table("Reviews");
+
+	return yield* Effect.tryPromise(() => reviewsTable.select().all()).pipe(
+		Effect.flatMap((records) =>
+			Effect.allSuccesses(
+				records.map((record) =>
+					Schema.decodeUnknown(Review)(record.fields),
+				),
+			),
+		),
+	);
+}).pipe(
+	Effect.tapErrorCause((error) => Console.error(error)),
+	Effect.withSpan("lib/utils/airtable/fetchHackerReviews"),
+);
