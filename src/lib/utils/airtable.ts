@@ -30,7 +30,9 @@ export const AirtableDb = Effect.gen(function* () {
 	Effect.withSpan("lib/utils/airtable"),
 );
 
-export const findNewHackerApplication = Effect.gen(function* () {
+export const findNewHackerApplication = Effect.fn(
+	"lib/utils/airtable/findNewHackerApplication",
+)(function* ({ priority }: { priority?: boolean }) {
 	const supabase = yield* Effect.tryPromise(() => createClient());
 	const user = yield* SupabaseUser(supabase);
 	const db = yield* AirtableDb;
@@ -84,7 +86,9 @@ export const findNewHackerApplication = Effect.gen(function* () {
 	return yield* Effect.async<Option.Option<ApplicationType>>((resume) => {
 		applicationsTable
 			.select({
-				filterByFormula: `{Role} = "Hacker"`,
+				filterByFormula: priority
+					? `AND({Role} = "Hacker", {Created at} < DATETIME_PARSE("2025-10-24", "YYYY-MM-DD"))`
+					: `{Role} = "Hacker"`,
 				pageSize: 100,
 			})
 			.eachPage(

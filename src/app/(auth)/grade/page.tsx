@@ -8,7 +8,7 @@ import { SupabaseUser } from "@/lib/utils/supabase";
 export default async function Grade() {
 	const supabase = await createClient();
 	const user = SupabaseUser(supabase).pipe(Effect.runPromise);
-	const application = findNewHackerApplication.pipe(
+	const application = findNewHackerApplication({ priority: true }).pipe(
 		Effect.flatten,
 		Effect.runPromise,
 	);
