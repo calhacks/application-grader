@@ -87,7 +87,7 @@ export const findNewHackerApplication = Effect.fn(
 		applicationsTable
 			.select({
 				filterByFormula: priority
-					? `AND({Role} = "Hacker", {Created at} < DATETIME_PARSE("2025-10-24", "YYYY-MM-DD"))`
+					? `AND({Role} = "Hacker", {Created at} < DATETIME_PARSE("2025-09-24", "YYYY-MM-DD"))`
 					: `{Role} = "Hacker"`,
 				pageSize: 100,
 			})
