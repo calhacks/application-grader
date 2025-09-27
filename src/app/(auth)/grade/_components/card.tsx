@@ -18,13 +18,19 @@ import { dateStringToDate, isAdult } from "@/lib/utils/util";
 import type { ApplicationType } from "@/schema/airtable";
 
 export interface ApplicationCardProps {
-	application: Promise<ApplicationType>;
+	application: Promise<ApplicationType | null>;
 	reviewer: Promise<User>;
 }
 
 export function ApplicationCard(props: ApplicationCardProps) {
 	const application = use(props.application);
 	const reviewer = use(props.reviewer);
+
+	if (!application) {
+		return (
+			<FailureAlert error="Application not found. Either grading is done, you grade too much, or Corey wrote a bug." />
+		);
+	}
 
 	if (!application.email) {
 		return <FailureAlert error="No email provided" />;

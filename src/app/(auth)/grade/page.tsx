@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import { Suspense } from "react";
 import { ApplicationCard } from "@/app/(auth)/grade/_components/card";
 import {
@@ -16,12 +16,14 @@ export default async function Grade() {
 	const supabase = await createClient();
 	const user = SupabaseUser(supabase).pipe(Effect.runPromise);
 	const application = findNewHackerApplication({ priority: true }).pipe(
-		Effect.flatten,
+		Effect.map(Option.getOrElse(() => null)),
 		Effect.runPromise,
 	);
 	const statistics = progressStatistics({ priority: true }).pipe(
 		Effect.runPromise,
 	);
+
+	console.log("application:", application);
 
 	return (
 		<main className="w-full h-full">
