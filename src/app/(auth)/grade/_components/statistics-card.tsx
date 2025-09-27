@@ -109,6 +109,29 @@ export function StatisticsCard(props: StatisticsCardProps) {
 							}
 						/>
 						<Statistic
+							label="Applications Left"
+							value={
+								<Tooltip>
+									<TooltipTrigger className="underline underline-offset-2 decoration-1 decoration-dotted decoration-black">
+										{statistics.totalApplications -
+											statistics.applicationsBegan}
+										,{" "}
+										{(
+											((statistics.totalApplications -
+												statistics.applicationsBegan) /
+												statistics.totalApplications) *
+											100
+										).toFixed(1)}
+										%
+									</TooltipTrigger>
+									<TooltipContent className="font-mono">
+										(total_applications -
+										applications_began) / total_applications
+									</TooltipContent>
+								</Tooltip>
+							}
+						/>
+						<Statistic
 							label="Total Priority Applications"
 							value={statistics.totalApplications}
 						/>
