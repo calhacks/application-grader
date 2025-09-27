@@ -1,8 +1,15 @@
 import { Effect } from "effect";
 import { Suspense } from "react";
 import { ApplicationCard } from "@/app/(auth)/grade/_components/card";
+import {
+	StatisticsCard,
+	StatisticsCardSkeleton,
+} from "@/app/(auth)/grade/_components/statistics-card";
 import { createClient } from "@/lib/supabase/server";
-import { findNewHackerApplication } from "@/lib/utils/airtable";
+import {
+	findNewHackerApplication,
+	progressStatistics,
+} from "@/lib/utils/airtable";
 import { SupabaseUser } from "@/lib/utils/supabase";
 
 export default async function Grade() {
@@ -12,10 +19,18 @@ export default async function Grade() {
 		Effect.flatten,
 		Effect.runPromise,
 	);
+	const statistics = progressStatistics({ priority: true }).pipe(
+		Effect.runPromise,
+	);
 
 	return (
 		<main className="w-full h-full">
-			<div className="p-8 flex justify-center">
+			<div className="relative p-8 flex flex-col items-center">
+				<div className="hidden sm:block absolute top-4 right-4">
+					<Suspense fallback={<StatisticsCardSkeleton />}>
+						<StatisticsCard statistics={statistics} />
+					</Suspense>
+				</div>
 				<Suspense
 					fallback={
 						<div className="font-mono">

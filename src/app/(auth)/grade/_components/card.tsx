@@ -117,6 +117,7 @@ export function ApplicationCard(props: ApplicationCardProps) {
 
 				<div className="flex flex-row gap-4 pt-4 border-t border-neutral-200">
 					<AcceptButton
+						applicationId={{ id: application.id }}
 						fields={{
 							email: application.email,
 							created_at: new Date().toISOString(),
@@ -124,6 +125,7 @@ export function ApplicationCard(props: ApplicationCardProps) {
 						}}
 					/>
 					<RejectButton
+						applicationId={{ id: application.id }}
 						fields={{
 							email: application.email,
 							created_at: new Date().toISOString(),

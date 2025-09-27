@@ -1,6 +1,20 @@
 import { Schema } from "effect";
 
+export const StatusDeferred = Schema.Literal("Deferred");
+export const StatusAccept = Schema.Literal("Accept");
+export const StatusRejected = Schema.Literal("Rejected");
+export const StatusConfirmed = Schema.Literal("Confirmed");
+
+export const Status = Schema.Union(
+	StatusDeferred,
+	StatusAccept,
+	StatusRejected,
+	StatusConfirmed,
+);
+export type Status = typeof Status;
+
 export const Application = Schema.Struct({
+	id: Schema.String,
 	email: Schema.optional(Schema.String).pipe(Schema.fromKey("Email")),
 	firstName: Schema.optional(Schema.String).pipe(
 		Schema.fromKey("First Name"),
@@ -97,6 +111,7 @@ export const Application = Schema.Struct({
 	volunteerIntroduction: Schema.optional(Schema.String).pipe(
 		Schema.fromKey("Volunteer introduction"),
 	),
+	status: Schema.optional(Status).pipe(Schema.fromKey("Status")),
 });
 
 export type ApplicationType = typeof Application.Type;

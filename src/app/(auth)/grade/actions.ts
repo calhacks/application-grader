@@ -1,21 +1,27 @@
 "use server";
 
-import { Console, Effect } from "effect";
+import { Console, Effect, Option } from "effect";
 import { AirtableDb, fetchHackerReviews } from "@/lib/utils/airtable";
-import type { ReviewEncoded } from "@/schema/airtable";
+import { calculatePriorityStatus } from "@/lib/utils/util";
+import type { ApplicationEncoded, ReviewEncoded } from "@/schema/airtable";
 
 export async function submitApplicationDecision(
+	applicationId: Pick<ApplicationEncoded, "id">,
 	review: Pick<
 		ReviewEncoded,
-		"created_at" | "decision" | "email" | "reviewer_id"
+		"email" | "created_at" | "reviewer_id" | "decision"
 	>,
 ) {
 	Effect.gen(function* () {
 		const db = yield* AirtableDb;
+		const applicationsTable = db.table("Applications");
 		const reviewsTable = db.table("Reviews");
 
 		const reviews = yield* fetchHackerReviews;
-		const decisions = { accept: 0, reject: 0 };
+		const decisions = {
+			accept: review.decision === "accept" ? 1 : 0,
+			reject: review.decision === "reject" ? 1 : 0,
+		};
 		for (const { decision, email } of reviews) {
 			if (review.email === email) {
 				if (decision === "accept") {
@@ -25,12 +31,28 @@ export async function submitApplicationDecision(
 				}
 			}
 
-			if (decisions.accept >= 2 || decisions.reject >= 1) {
+			if (decisions.accept > 2 || decisions.reject > 1) {
 				return;
 			}
 		}
 
-		yield* Effect.tryPromise(() =>
+		const status = calculatePriorityStatus(decisions);
+		const insertDecision = Option.match(status, {
+			onNone: () => Effect.void,
+			onSome: (status) =>
+				Effect.tryPromise(() =>
+					applicationsTable.update([
+						{
+							id: applicationId.id,
+							fields: {
+								Status: status.literals[0],
+							},
+						},
+					]),
+				),
+		});
+
+		const insertReview = Effect.tryPromise(() =>
 			reviewsTable.create([
 				{
 					fields: {
@@ -42,6 +64,10 @@ export async function submitApplicationDecision(
 				},
 			]),
 		);
+
+		return yield* Effect.all([insertDecision, insertReview], {
+			concurrency: 2,
+		});
 	}).pipe(
 		Effect.tapErrorCause((error) => Console.error(error)),
 		Effect.withSpan("app/(auth)/grade/actions/submitApplicationDecision"),

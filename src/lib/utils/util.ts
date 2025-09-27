@@ -1,4 +1,5 @@
-import { Effect } from "effect";
+import { Effect, Option, Schema } from "effect";
+import { Status } from "@/schema/airtable";
 
 export function camelCaseToTitleCase(input: string): string {
 	return input
@@ -24,4 +25,23 @@ export function isAdult(birthdate: Date, date: Date): boolean {
 		birthdate.getDate(),
 	);
 	return date >= eighteenthBirthday;
+}
+
+export function calculatePriorityStatus({
+	accept,
+	reject,
+}: {
+	accept: number;
+	reject: number;
+}): Option.Option<(typeof Status.members)[number]> {
+	if (accept >= 1 && reject >= 1) {
+		return Status.pipe(Schema.pickLiteral("Deferred"), Option.some);
+	}
+	if (accept >= 2) {
+		return Status.pipe(Schema.pickLiteral("Accept"), Option.some);
+	}
+	if (reject >= 1) {
+		return Status.pipe(Schema.pickLiteral("Rejected"), Option.some);
+	}
+	return Option.none();
 }

@@ -4,22 +4,26 @@ import { useRouter } from "next/navigation";
 import useSWRMutation from "swr/mutation";
 import { submitApplicationDecision } from "@/app/(auth)/grade/actions";
 import { Button } from "@/components/ui/button";
-import type { ReviewEncoded } from "@/schema/airtable";
+import type { ApplicationEncoded, ReviewEncoded } from "@/schema/airtable";
 
 interface SubmitButtonProps {
-	fields: Pick<ReviewEncoded, "created_at" | "email" | "reviewer_id">;
+	applicationId: Pick<ApplicationEncoded, "id">;
+	fields: Pick<ReviewEncoded, "email" | "created_at" | "reviewer_id">;
 }
 
 export function AcceptButton(props: SubmitButtonProps) {
 	const router = useRouter();
 	const { trigger, isMutating } = useSWRMutation(
 		"accept-button-key",
-		(_, options: { arg: typeof props.fields }) =>
-			submitApplicationDecision({ ...options.arg, decision: "accept" }),
+		(_, options: { arg: SubmitButtonProps }) =>
+			submitApplicationDecision(options.arg.applicationId, {
+				...options.arg.fields,
+				decision: "accept",
+			}),
 	);
 
 	async function handleAccept() {
-		await trigger(props.fields);
+		await trigger(props);
 		router.refresh();
 	}
 
@@ -39,12 +43,15 @@ export function RejectButton(props: SubmitButtonProps) {
 	const router = useRouter();
 	const { trigger, isMutating } = useSWRMutation(
 		"reject-button-key",
-		(_, options: { arg: typeof props.fields }) =>
-			submitApplicationDecision({ ...options.arg, decision: "reject" }),
+		(_, options: { arg: SubmitButtonProps }) =>
+			submitApplicationDecision(options.arg.applicationId, {
+				...options.arg.fields,
+				decision: "reject",
+			}),
 	);
 
 	async function handleReject() {
-		await trigger(props.fields);
+		await trigger(props);
 		router.refresh();
 	}
 

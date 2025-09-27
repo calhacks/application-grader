@@ -11,7 +11,12 @@ import {
 import { ServerEnv } from "@/lib/env/server";
 import { createClient } from "@/lib/supabase/server";
 import { SupabaseUser } from "@/lib/utils/supabase";
-import { Application, type ApplicationType, Review } from "@/schema/airtable";
+import {
+	Application,
+	type ApplicationType,
+	Decision,
+	Review,
+} from "@/schema/airtable";
 
 Effect.gen(function* () {
 	const { AirtablePat } = yield* ServerEnv;
@@ -32,7 +37,7 @@ export const AirtableDb = Effect.gen(function* () {
 
 export const findNewHackerApplication = Effect.fn(
 	"lib/utils/airtable/findNewHackerApplication",
-)(function* ({ priority }: { priority?: boolean }) {
+)(function* ({ priority }: { priority: boolean }) {
 	const supabase = yield* Effect.tryPromise(() => createClient());
 	const user = yield* SupabaseUser(supabase);
 	const db = yield* AirtableDb;
@@ -95,7 +100,10 @@ export const findNewHackerApplication = Effect.fn(
 				(records, paginate) => {
 					Effect.allSuccesses(
 						records.map((record) =>
-							Schema.decodeUnknown(Application)(record.fields),
+							Schema.decodeUnknown(Application)({
+								id: record.id,
+								...record.fields,
+							}),
 						),
 					).pipe(
 						Effect.flatMap(Random.shuffle),
@@ -142,7 +150,10 @@ export const fetchHackerApplications = Effect.fn(
 		Effect.flatMap((records) =>
 			Effect.allSuccesses(
 				records.map((record) =>
-					Schema.decodeUnknown(Application)(record.fields),
+					Schema.decodeUnknown(Application)({
+						id: record.id,
+						...record.fields,
+					}),
 				),
 			),
 		),
@@ -166,3 +177,107 @@ export const fetchHackerReviews = Effect.gen(function* () {
 	Effect.tapErrorCause((error) => Console.error(error)),
 	Effect.withSpan("lib/utils/airtable/fetchHackerReviews"),
 );
+
+export const progressStatistics = Effect.fnUntraced(function* ({
+	priority,
+}: {
+	priority: boolean;
+}) {
+	const db = yield* AirtableDb;
+	const applicationsTable = db.table("Applications");
+	const reviewsTable = db.table("Reviews");
+
+	const fetchApplications = Effect.tryPromise(() =>
+		applicationsTable
+			.select({
+				filterByFormula: priority
+					? `AND({Role} = "Hacker", {Created at} < DATETIME_PARSE("2025-09-24", "YYYY-MM-DD"))`
+					: `{Role} = "Hacker"`,
+				fields: ["Email"],
+			})
+			.all(),
+	).pipe(
+		Effect.flatMap((records) =>
+			Effect.allSuccesses(
+				records.map((record) =>
+					Schema.decodeUnknown(
+						Schema.Struct({
+							Email: Schema.String,
+						}),
+					)(record.fields),
+				),
+			),
+		),
+		Effect.map((records) => new Set(records.map((record) => record.Email))),
+	);
+
+	const fetchReviews = Effect.tryPromise(() =>
+		reviewsTable.select({ fields: ["email", "decision"] }).all(),
+	).pipe(
+		Effect.flatMap((records) =>
+			Effect.allSuccesses(
+				records.map((record) =>
+					Schema.decodeUnknown(
+						Schema.Struct({
+							email: Schema.String,
+							decision: Decision,
+						}),
+					)(record.fields),
+				),
+			),
+		),
+	);
+
+	const [applications, reviews] = yield* Effect.all(
+		[fetchApplications, fetchReviews],
+		{ concurrency: 2 },
+	);
+
+	const acceptedApplications = new Set<string>();
+	const rejectedApplications = new Set<string>();
+	const deferredApplications = new Set<string>();
+	let applicationsBegan = 0;
+
+	const reviewsCache = new Map<
+		string,
+		{ accepted: number; rejected: number }
+	>();
+	for (const review of reviews) {
+		if (!applications.has(review.email)) {
+			continue;
+		}
+
+		const entry = reviewsCache.get(review.email);
+		if (!entry) {
+			reviewsCache.set(review.email, {
+				accepted: review.decision === "accept" ? 1 : 0,
+				rejected: review.decision === "reject" ? 1 : 0,
+			});
+			applicationsBegan += 1;
+		} else {
+			if (review.decision === "accept") {
+				entry.accepted += 1;
+			} else if (review.decision === "reject") {
+				entry.rejected += 1;
+			}
+		}
+	}
+
+	for (const [email, entry] of reviewsCache) {
+		if (entry.accepted >= 2) {
+			acceptedApplications.add(email);
+		} else if (entry.accepted >= 1 && entry.rejected >= 1) {
+			deferredApplications.add(email);
+		} else if (entry.rejected >= 1) {
+			rejectedApplications.add(email);
+		}
+	}
+
+	return {
+		acceptedApplications: acceptedApplications.size,
+		rejectedApplications: rejectedApplications.size,
+		deferredApplications: deferredApplications.size,
+		applicationsBegan,
+		totalApplications: applications.size,
+	};
+});
