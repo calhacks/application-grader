@@ -12,13 +12,7 @@ import {
 } from "@/app/(auth)/grade/_components/buttons";
 import { ApplicationField } from "@/components/description/application";
 import { Badge } from "@/components/ui/badge";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventStartDate } from "@/lib/constants";
 import { dateStringToDate, isAdult } from "@/lib/utils/util";
 import type { ApplicationType } from "@/schema/airtable";
@@ -44,7 +38,6 @@ export function ApplicationCard(props: ApplicationCardProps) {
 		<Card className="max-w-content w-full sm:w-3/4">
 			<CardHeader>
 				<CardTitle>Hacker Application</CardTitle>
-				<CardDescription></CardDescription>
 			</CardHeader>
 			<CardContent>
 				<div className="border-t border-neutral-200">
@@ -111,6 +104,10 @@ export function ApplicationCard(props: ApplicationCardProps) {
 						<ApplicationField
 							label="Goal"
 							value={application.goal}
+						/>
+						<ApplicationField
+							label="Joke"
+							value={application.joke}
 						/>
 					</dl>
 				</div>
