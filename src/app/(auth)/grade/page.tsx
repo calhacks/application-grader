@@ -1,4 +1,5 @@
 import { Effect, Option } from "effect";
+import fs from "fs";
 import { Suspense } from "react";
 import { ApplicationCard } from "@/app/(auth)/grade/_components/card";
 import {
@@ -22,8 +23,6 @@ export default async function Grade() {
 	const statistics = progressStatistics({ priority: true }).pipe(
 		Effect.runPromise,
 	);
-
-	console.log("application:", application);
 
 	return (
 		<main className="w-full h-full">
