@@ -112,6 +112,9 @@ export const Application = Schema.Struct({
 		Schema.fromKey("Volunteer introduction"),
 	),
 	status: Schema.optional(Status).pipe(Schema.fromKey("Status")),
+	createdAt: Schema.optional(Schema.String).pipe(
+		Schema.fromKey("Created at"),
+	),
 });
 
 export type ApplicationType = typeof Application.Type;

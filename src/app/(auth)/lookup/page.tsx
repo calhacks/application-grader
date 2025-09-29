@@ -16,6 +16,7 @@ export default async function Lookup() {
 		"Major / studying",
 		"Role",
 		"University",
+		"Created at",
 	]).pipe(Effect.runPromise);
 
 	return (
