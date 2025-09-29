@@ -2,7 +2,15 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import type { ApplicationType } from "@/schema/airtable";
-import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button";
 
 type ApplicationView = Pick<
 	ApplicationType,
@@ -18,9 +26,48 @@ type ApplicationView = Pick<
 	| "university"
 	| "status"
 	| "createdAt"
+	| "id"
 >;
 
 export const columns: ColumnDef<ApplicationView>[] = [
+	{
+	id: "actions",
+	header: "Actions",
+	cell: ({ row }) => {
+		const application = row.original;
+
+		return (
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button variant="outline">Update status</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end">
+					<DropdownMenuItem
+						onClick={async () => {
+							// update to accept
+						}}
+					>
+						Accept
+					</DropdownMenuItem>
+					<DropdownMenuItem
+						onClick={async () => {
+							// update to rejected
+						}}
+					>
+						Rejected
+					</DropdownMenuItem>
+					<DropdownMenuItem
+						onClick={async () => {
+							// update to confirmed
+						}}
+					>
+						Confirmed
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
+		);
+	},
+},
 	{
 		accessorKey: "status",
 		header: "Status",
