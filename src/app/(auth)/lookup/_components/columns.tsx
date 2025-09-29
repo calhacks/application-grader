@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import type { ApplicationType } from "@/schema/airtable";
+import { Badge } from "@/components/ui/badge";
 
 type ApplicationView = Pick<
 	ApplicationType,
@@ -15,9 +16,14 @@ type ApplicationView = Pick<
 	| "majorStudying"
 	| "role"
 	| "university"
+	| "status"
 >;
 
 export const columns: ColumnDef<ApplicationView>[] = [
+	{
+		accessorKey: "status",
+		header: "Status",
+	},
 	{
 		accessorKey: "firstName",
 		header: "First Name",
