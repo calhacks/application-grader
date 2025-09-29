@@ -17,12 +17,22 @@ type ApplicationView = Pick<
 	| "role"
 	| "university"
 	| "status"
+	| "createdAt"
 >;
 
 export const columns: ColumnDef<ApplicationView>[] = [
 	{
 		accessorKey: "status",
 		header: "Status",
+	},
+	{
+		accessorKey: "createdAt",
+		header: "Priority",
+		cell: ({ row }) => {
+			const createdAt = row.getValue("createdAt") as string;
+			// Cutoff: 9/24/25 12:00:00am PT = 9/24/25 07:00 UTC
+			return new Date(createdAt) < new Date("2025-09-24T07:00:00.000Z") ? "Yes" : "No";
+		},
 	},
 	{
 		accessorKey: "firstName",
