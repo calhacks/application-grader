@@ -18,7 +18,6 @@ import {
 import {
 	type ApplicationType,
 	StatusAccept,
-	StatusConfirmed,
 	StatusRejected,
 } from "@/schema/airtable";
 
@@ -114,35 +113,6 @@ export const columns: ColumnDef<ApplicationView>[] = [
 										>
 											<DropdownMenuItem className="w-full">
 												Rejected
-											</DropdownMenuItem>
-										</Button>
-									</form>
-									<form
-										action={() => {
-											toast.promise(
-												updateHackerApplicationStatus(
-													application.id,
-													StatusConfirmed.literals[0],
-												),
-												{
-													loading:
-														"Updating status...",
-													success: () =>
-														`${application.email ?? "`Email not found`"} status updated to: ${StatusConfirmed.literals[0]}`,
-													error: () =>
-														`Something went wrong when updating status for: ${application.email ?? "`Email not found`"}`,
-												},
-											);
-										}}
-									>
-										<Button
-											type="submit"
-											variant="ghost"
-											size={null}
-											className="w-full justify-start"
-										>
-											<DropdownMenuItem className="w-full">
-												Confirmed
 											</DropdownMenuItem>
 										</Button>
 									</form>
