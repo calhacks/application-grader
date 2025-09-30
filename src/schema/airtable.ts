@@ -11,7 +11,7 @@ export const Status = Schema.Union(
 	StatusRejected,
 	StatusConfirmed,
 );
-export type Status = typeof Status;
+export type Status = typeof Status.Type;
 
 export const Application = Schema.Struct({
 	id: Schema.String,
