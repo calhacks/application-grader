@@ -93,7 +93,7 @@ export const findNewHackerApplication = Effect.fn(
 			.select({
 				filterByFormula: `AND(
           {Role} = "Hacker",
-          {Created at} < DATETIME_PARSE("2025-09-24 07:00", "YYYY-MM-DD HH:mm")
+          {Review needed} = 1
         )`,
 				pageSize: 100,
 			})
@@ -193,7 +193,7 @@ export const progressStatistics = Effect.fnUntraced(function* ({
 			.select({
 				filterByFormula: `AND(
           {Role} = "Hacker",
-          {Created at} < DATETIME_PARSE("2025-09-24 07:00", "YYYY-MM-DD HH:mm")
+          {Review needed} = 1
         )`,
 				fields: ["Email"],
 			})
@@ -294,7 +294,7 @@ export const priorityEmailResults = Effect.gen(function* () {
 			.select({
 				filterByFormula: `AND(
           {Role} = "Hacker",
-          {Created at} < DATETIME_PARSE("2025-09-24 07:00", "YYYY-MM-DD HH:mm")
+          {Review needed} = 1
         )`,
 				fields: ["Email"],
 			})
