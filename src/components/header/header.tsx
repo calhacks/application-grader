@@ -2,6 +2,7 @@ import { Effect, Option } from "effect";
 import Link from "next/link";
 import { AuthButton } from "@/components/header/auth-button";
 import { Button } from "@/components/ui/button";
+import { LogisticsTeamEmails } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import { SupabaseUser } from "@/lib/utils/supabase";
 
@@ -10,6 +11,13 @@ export default async function Header() {
 	const user = await SupabaseUser(supabase).pipe(
 		Effect.option,
 		Effect.runPromise,
+	);
+
+	const isLogisticsTeam = user.pipe(
+		Option.map((user) =>
+			user.email ? LogisticsTeamEmails.includes(user.email) : false,
+		),
+		Option.getOrElse(() => false),
 	);
 
 	return (
@@ -30,6 +38,17 @@ export default async function Header() {
 						Grade
 					</Link>
 				</Button>
+
+				{isLogisticsTeam && (
+					<Button asChild variant="ghost">
+						<Link
+							href="/grade/judge"
+							className="font-medium text-sm sm:text-base text-neutral-900"
+						>
+							Judge Applications
+						</Link>
+					</Button>
+				)}
 
 				<Button asChild variant="ghost">
 					<Link
