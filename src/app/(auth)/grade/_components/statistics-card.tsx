@@ -14,6 +14,7 @@ export interface StatisticsCardProps {
 		rejectedApplications: number;
 		deferredApplications: number;
 		applicationsBegan: number;
+		regularRoundApplications: number;
 		totalApplications: number;
 	}>;
 }
@@ -21,10 +22,32 @@ export interface StatisticsCardProps {
 export function StatisticsCard(props: StatisticsCardProps) {
 	const statistics = use(props.statistics);
 
+	const acceptedPercentage = (
+		(statistics.acceptedApplications / statistics.totalApplications) *
+		100
+	).toFixed(1);
+	const rejectedPercentage = (
+		(statistics.rejectedApplications / statistics.totalApplications) *
+		100
+	).toFixed(1);
+	const deferredPercentage = (
+		(statistics.deferredApplications / statistics.totalApplications) *
+		100
+	).toFixed(1);
+	const applicationsBeganPercentage = (
+		(statistics.applicationsBegan / statistics.regularRoundApplications) *
+		100
+	).toFixed(1);
+	const applicationsLeftPercentage = (
+		((statistics.regularRoundApplications - statistics.applicationsBegan) /
+			statistics.regularRoundApplications) *
+		100
+	).toFixed(1);
+
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Priority Applications Progress</CardTitle>
+				<CardTitle>Applications Progress</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div className="border-t border-neutral-200">
@@ -35,16 +58,11 @@ export function StatisticsCard(props: StatisticsCardProps) {
 								<Tooltip>
 									<TooltipTrigger className="underline underline-offset-2 decoration-1 decoration-dotted decoration-black">
 										{statistics.acceptedApplications},{" "}
-										{(
-											(statistics.acceptedApplications /
-												statistics.applicationsBegan) *
-											100
-										).toFixed(1)}
-										%
+										{acceptedPercentage}%
 									</TooltipTrigger>
 									<TooltipContent className="font-mono">
 										accepted_applications /
-										applications_began
+										total_applications
 									</TooltipContent>
 								</Tooltip>
 							}
@@ -55,16 +73,11 @@ export function StatisticsCard(props: StatisticsCardProps) {
 								<Tooltip>
 									<TooltipTrigger className="underline underline-offset-2 decoration-1 decoration-dotted decoration-black">
 										{statistics.rejectedApplications},{" "}
-										{(
-											(statistics.rejectedApplications /
-												statistics.applicationsBegan) *
-											100
-										).toFixed(1)}
-										%
+										{rejectedPercentage}%
 									</TooltipTrigger>
 									<TooltipContent className="font-mono">
 										rejected_applications /
-										applications_began
+										total_applications
 									</TooltipContent>
 								</Tooltip>
 							}
@@ -75,16 +88,11 @@ export function StatisticsCard(props: StatisticsCardProps) {
 								<Tooltip>
 									<TooltipTrigger className="underline underline-offset-2 decoration-1 decoration-dotted decoration-black">
 										{statistics.deferredApplications},{" "}
-										{(
-											(statistics.deferredApplications /
-												statistics.applicationsBegan) *
-											100
-										).toFixed(1)}
-										%
+										{deferredPercentage}%
 									</TooltipTrigger>
 									<TooltipContent className="font-mono">
 										deferred_applications /
-										applications_began
+										total_applications
 									</TooltipContent>
 								</Tooltip>
 							}
@@ -95,15 +103,11 @@ export function StatisticsCard(props: StatisticsCardProps) {
 								<Tooltip>
 									<TooltipTrigger className="underline underline-offset-2 decoration-1 decoration-dotted decoration-black">
 										{statistics.applicationsBegan},{" "}
-										{(
-											(statistics.applicationsBegan /
-												statistics.totalApplications) *
-											100
-										).toFixed(1)}
-										%
+										{applicationsBeganPercentage}%
 									</TooltipTrigger>
 									<TooltipContent className="font-mono">
-										applications_began / total_applications
+										applications_began /
+										regular_round_applications
 									</TooltipContent>
 								</Tooltip>
 							}
@@ -113,27 +117,44 @@ export function StatisticsCard(props: StatisticsCardProps) {
 							value={
 								<Tooltip>
 									<TooltipTrigger className="underline underline-offset-2 decoration-1 decoration-dotted decoration-black">
-										{statistics.totalApplications -
+										{statistics.regularRoundApplications -
 											statistics.applicationsBegan}
-										,{" "}
-										{(
-											((statistics.totalApplications -
-												statistics.applicationsBegan) /
-												statistics.totalApplications) *
-											100
-										).toFixed(1)}
-										%
+										, {applicationsLeftPercentage}%
 									</TooltipTrigger>
 									<TooltipContent className="font-mono">
-										(total_applications -
-										applications_began) / total_applications
+										(regular_round_applications -
+										applications_began) /
+										regular_round_applications
 									</TooltipContent>
 								</Tooltip>
 							}
 						/>
 						<Statistic
-							label="Total Priority Applications"
-							value={statistics.totalApplications}
+							label="Regular Round Applications"
+							value={
+								<Tooltip>
+									<TooltipTrigger className="underline underline-offset-2 decoration-1 decoration-dotted decoration-black">
+										{statistics.regularRoundApplications}
+									</TooltipTrigger>
+									<TooltipContent className="font-mono">
+										# of applications submitted during
+										Regular Round
+									</TooltipContent>
+								</Tooltip>
+							}
+						/>
+						<Statistic
+							label="Total Applications"
+							value={
+								<Tooltip>
+									<TooltipTrigger className="underline underline-offset-2 decoration-1 decoration-dotted decoration-black">
+										{statistics.totalApplications}
+									</TooltipTrigger>
+									<TooltipContent className="font-mono">
+										Total # of applications submitted
+									</TooltipContent>
+								</Tooltip>
+							}
 						/>
 					</dl>
 				</div>

@@ -27,20 +27,17 @@ export function isAdult(birthdate: Date, date: Date): boolean {
 	return date >= eighteenthBirthday;
 }
 
-export function calculatePriorityStatus({
+export function calculateStatus({
 	accept,
 	reject,
 }: {
 	accept: number;
 	reject: number;
 }): Option.Option<(typeof Status.members)[number]> {
-	if (accept >= 1 && reject >= 1) {
-		return Status.pipe(Schema.pickLiteral("Deferred"), Option.some);
-	}
-	if (accept >= 2) {
+	if (accept >= 1) {
 		return Status.pipe(Schema.pickLiteral("Accept"), Option.some);
 	}
-	if (reject >= 1) {
+	if (reject >= 2) {
 		return Status.pipe(Schema.pickLiteral("Rejected"), Option.some);
 	}
 	return Option.none();

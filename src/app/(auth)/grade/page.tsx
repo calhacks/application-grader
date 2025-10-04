@@ -8,7 +8,7 @@ import {
 } from "@/app/(auth)/grade/_components/statistics-card";
 import { createClient } from "@/lib/supabase/server";
 import {
-	findNewHackerApplication,
+	findHackerApplication,
 	progressStatistics,
 } from "@/lib/utils/airtable";
 import { SupabaseUser } from "@/lib/utils/supabase";
@@ -16,13 +16,11 @@ import { SupabaseUser } from "@/lib/utils/supabase";
 export default async function Grade() {
 	const supabase = await createClient();
 	const user = SupabaseUser(supabase).pipe(Effect.runPromise);
-	const application = findNewHackerApplication({ priority: true }).pipe(
+	const application = findHackerApplication.pipe(
 		Effect.map(Option.getOrElse(() => null)),
 		Effect.runPromise,
 	);
-	const statistics = progressStatistics({ priority: true }).pipe(
-		Effect.runPromise,
-	);
+	const statistics = progressStatistics.pipe(Effect.runPromise);
 
 	return (
 		<main className="w-full h-full">
