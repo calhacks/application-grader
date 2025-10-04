@@ -19,9 +19,7 @@ import {
 	ApplicationReviewNeeded,
 	ApplicationStatus,
 	type ApplicationType,
-	Decision,
 	Review,
-	Status,
 	StatusAccept,
 	StatusDeferred,
 	StatusRejected,
@@ -96,6 +94,55 @@ export const findHackerApplication = Effect.gen(function* () {
 	Effect.withLogSpan("lib/utils/airtable/findHackerApplication"),
 );
 
+export const findJudgeApplication = Effect.gen(function* () {
+	const supabase = yield* Effect.tryPromise(() => createClient());
+	const user = yield* SupabaseUser(supabase);
+	const db = yield* AirtableDb;
+	const applicationsTable = db.table("Applications");
+
+	return yield* Effect.async<Option.Option<ApplicationType>>((resume) => {
+		applicationsTable
+			.select({
+				filterByFormula: `AND(
+           {Role} = "Judge",
+           {Review needed} = 1,
+           {Reviewer 1} != "${user.id}",
+           {Reviewer 2} != "${user.id}",
+           {Reviewer 3} != "${user.id}"
+         )`,
+				pageSize: 100,
+			})
+			.eachPage(
+				(records, paginate) => {
+					Effect.allSuccesses(
+						records.map((record) =>
+							Schema.decodeUnknown(Application)({
+								id: record.id,
+								...record.fields,
+							}),
+						),
+					).pipe(
+						Effect.flatMap(Random.shuffle),
+						Effect.map(Chunk.head),
+						Effect.tap(
+							Option.match({
+								onNone: () => paginate(),
+								onSome: (application) =>
+									resume(
+										Effect.succeed(
+											Option.some(application),
+										),
+									),
+							}),
+						),
+						Effect.runPromise,
+					);
+				},
+				() => resume(Effect.succeed(Option.none())),
+			);
+	});
+});
+
 export const fetchHackerApplications = Effect.fn(
 	"lib/utils/airtable/fetchHackerApplications",
 )(function* (fields?: ApplicationColumns[]) {
@@ -107,6 +154,33 @@ export const fetchHackerApplications = Effect.fn(
 			.select({
 				fields: fields,
 				filterByFormula: `{Role} = "Hacker"`,
+			})
+			.all(),
+	).pipe(
+		Effect.flatMap((records) =>
+			Effect.allSuccesses(
+				records.map((record) =>
+					Schema.decodeUnknown(Application)({
+						id: record.id,
+						...record.fields,
+					}),
+				),
+			),
+		),
+	);
+});
+
+export const fetchJudgeApplications = Effect.fn(
+	"lib/utils/airtable/fetchJudgeApplications",
+)(function* (fields?: ApplicationColumns[]) {
+	const db = yield* AirtableDb;
+	const applicationsTable = db.table("Applications");
+
+	return yield* Effect.tryPromise(() =>
+		applicationsTable
+			.select({
+				fields: fields,
+				filterByFormula: `{Role} = "Judge"`,
 			})
 			.all(),
 	).pipe(
@@ -141,7 +215,7 @@ export const fetchHackerReviews = Effect.gen(function* () {
 	Effect.withLogSpan("lib/utils/airtable/fetchHackerReviews"),
 );
 
-export const progressStatistics = Effect.gen(function* () {
+export const hackerProgressStatistics = Effect.gen(function* () {
 	const db = yield* AirtableDb;
 	const applicationsTable = db.table("Applications");
 	const reviewsTable = db.table("Reviews");
@@ -209,11 +283,11 @@ export const progressStatistics = Effect.gen(function* () {
 
 	return {
 		acceptedApplications:
-			applicationsByStatus[StatusAccept.literals[0]].length || 0,
+			applicationsByStatus[StatusAccept.literals[0]]?.length || 0,
 		rejectedApplications:
-			applicationsByStatus[StatusRejected.literals[0]].length || 0,
+			applicationsByStatus[StatusRejected.literals[0]]?.length || 0,
 		deferredApplications:
-			applicationsByStatus[StatusDeferred.literals[0]].length || 0,
+			applicationsByStatus[StatusDeferred.literals[0]]?.length || 0,
 		applicationsBegan: Object.keys(reviewsByEmail).length,
 		regularRoundApplications:
 			Object.keys(reviewsByEmail).length + applicationsNotReviewed.length,
@@ -221,5 +295,54 @@ export const progressStatistics = Effect.gen(function* () {
 	};
 }).pipe(
 	Effect.tapErrorCause((error) => Console.error(error)),
-	Effect.withLogSpan("lib/utils/airtable/progressStatistics"),
+	Effect.withLogSpan("lib/utils/airtable/hackerProgressStatistics"),
+);
+
+export const judgeProgressStatistics = Effect.gen(function* () {
+	const db = yield* AirtableDb;
+	const applicationsTable = db.table("Applications");
+
+	const applications = yield* Effect.tryPromise(() =>
+		applicationsTable
+			.select({
+				filterByFormula: `AND(
+          {Role} = "Judge"
+        )`,
+				fields: [
+					ApplicationEmail.literals[0],
+					ApplicationStatus.literals[0],
+					ApplicationReviewNeeded.literals[0],
+				],
+			})
+			.all(),
+	).pipe(
+		Effect.flatMap((records) =>
+			Effect.allSuccesses(
+				records.map((record) =>
+					Schema.decodeUnknown(
+						Application.pick("email", "status", "reviewNeeded"),
+					)(record.fields),
+				),
+			),
+		),
+		Effect.map((records) => new Set(records)),
+	);
+
+	const applicationsByStatus = EffectArray.groupBy(
+		applications,
+		(application) => application.status ?? "No Status",
+	);
+
+	return {
+		acceptedApplications:
+			applicationsByStatus[StatusAccept.literals[0]]?.length || 0,
+		rejectedApplications:
+			applicationsByStatus[StatusRejected.literals[0]]?.length || 0,
+		applicationsBegan:
+			applications.size - applicationsByStatus["No Status"]?.length || 0,
+		totalApplications: applications.size,
+	};
+}).pipe(
+	Effect.tapErrorCause((error) => Console.error(error)),
+	Effect.withLogSpan("lib/utils/airtable/judgeProgressStatistics"),
 );

@@ -27,7 +27,7 @@ export function isAdult(birthdate: Date, date: Date): boolean {
 	return date >= eighteenthBirthday;
 }
 
-export function calculateStatus({
+export function calculateHackerStatus({
 	accept,
 	reject,
 }: {
@@ -38,6 +38,22 @@ export function calculateStatus({
 		return Status.pipe(Schema.pickLiteral("Accept"), Option.some);
 	}
 	if (reject >= 2) {
+		return Status.pipe(Schema.pickLiteral("Rejected"), Option.some);
+	}
+	return Option.none();
+}
+
+export function calculateJudgeStatus({
+	accept,
+	reject,
+}: {
+	accept: number;
+	reject: number;
+}): Option.Option<(typeof Status.members)[number]> {
+	if (accept >= 2) {
+		return Status.pipe(Schema.pickLiteral("Accept"), Option.some);
+	}
+	if (reject >= 1) {
 		return Status.pipe(Schema.pickLiteral("Rejected"), Option.some);
 	}
 	return Option.none();

@@ -6,8 +6,10 @@ import { ThumbsUpIcon, XIcon } from "lucide-react";
 import { use } from "react";
 import { FailureAlert } from "@/app/(auth)/grade/_components/alert";
 import {
-	AcceptButton,
-	RejectButton,
+	HackerAcceptButton,
+	HackerRejectButton,
+	JudgeAcceptButton,
+	JudgeRejectButton,
 	SkipButton,
 } from "@/app/(auth)/grade/_components/buttons";
 import { ApplicationField } from "@/components/description/application";
@@ -19,12 +21,11 @@ import type { ApplicationType } from "@/schema/airtable";
 
 export interface ApplicationCardProps {
 	application: Promise<ApplicationType | null>;
-	reviewer: Promise<User>;
+	reviewer: User;
 }
 
-export function ApplicationCard(props: ApplicationCardProps) {
+export function HackerApplicationCard(props: ApplicationCardProps) {
 	const application = use(props.application);
-	const reviewer = use(props.reviewer);
 
 	if (!application) {
 		return (
@@ -119,20 +120,116 @@ export function ApplicationCard(props: ApplicationCardProps) {
 				</div>
 
 				<div className="flex flex-row gap-4 pt-4 border-t border-neutral-200">
-					<AcceptButton
+					<HackerAcceptButton
 						applicationId={{ id: application.id }}
 						fields={{
 							email: application.email,
 							created_at: new Date().toISOString(),
-							reviewer_id: reviewer.id,
+							reviewer_id: props.reviewer.id,
 						}}
 					/>
-					<RejectButton
+					<HackerRejectButton
 						applicationId={{ id: application.id }}
 						fields={{
 							email: application.email,
 							created_at: new Date().toISOString(),
-							reviewer_id: reviewer.id,
+							reviewer_id: props.reviewer.id,
+						}}
+					/>
+					<SkipButton />
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
+
+export function JudgeApplicationCard(props: ApplicationCardProps) {
+	const application = use(props.application);
+
+	if (!application) {
+		return (
+			<FailureAlert error="Application not found. Either grading is done, you grade too much, or Corey wrote a bug." />
+		);
+	}
+
+	if (!application.email) {
+		return <FailureAlert error="No email provided" />;
+	}
+
+	return (
+		<Card className="max-w-content w-full sm:w-3/4">
+			<CardHeader>
+				<CardTitle>Judge Application</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<div className="border-t border-neutral-200">
+					<dl className="divide-y divide-neutral-200">
+						<ApplicationField
+							label="First Name"
+							value={application.firstName}
+						/>
+						<ApplicationField
+							label="Last Name"
+							value={application.lastName}
+						/>
+						<ApplicationField
+							label="Email"
+							value={application.email}
+						/>
+						<ApplicationField
+							label="Role"
+							value={application.role}
+						/>
+						<ApplicationField
+							label="Previous hackathons?"
+							value={application.previousHackathons}
+						/>
+						<ApplicationField
+							label="Previous H@B hackathons?"
+							value={application.previousBerkeleyHackathons}
+						/>
+						<ApplicationField
+							label="Referrer"
+							value={application.referrer}
+						/>
+						<ApplicationField
+							label="Employer"
+							value={application.employer}
+						/>
+						<ApplicationField
+							label="Job title"
+							value={application.jobTitle}
+						/>
+						<ApplicationField
+							label="Areas of expertise"
+							value={application.areasOfExpertise}
+						/>
+						<ApplicationField
+							label="Looking forward to..."
+							value={application.lookingForwardJudge}
+						/>
+						<ApplicationField
+							label="Past projects"
+							value={application.pastProjectJudge}
+						/>
+					</dl>
+				</div>
+
+				<div className="flex flex-row gap-4 pt-4 border-t border-neutral-200">
+					<JudgeAcceptButton
+						applicationId={{ id: application.id }}
+						fields={{
+							email: application.email,
+							created_at: new Date().toISOString(),
+							reviewer_id: props.reviewer.id,
+						}}
+					/>
+					<JudgeRejectButton
+						applicationId={{ id: application.id }}
+						fields={{
+							email: application.email,
+							created_at: new Date().toISOString(),
+							reviewer_id: props.reviewer.id,
 						}}
 					/>
 					<SkipButton />
