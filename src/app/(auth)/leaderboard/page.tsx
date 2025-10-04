@@ -7,7 +7,7 @@ import {
 } from "@/app/(auth)/leaderboard/_components/columns";
 import { DataTable } from "@/app/(auth)/leaderboard/_components/data-table";
 import { createClient } from "@/lib/supabase/admin";
-import { fetchHackerReviews } from "@/lib/utils/airtable";
+import { fetchHackerReviews, fetchJudgeReviews } from "@/lib/utils/airtable";
 
 export default async function Leaderboard() {
 	const supabase = await createClient();
@@ -18,27 +18,45 @@ export default async function Leaderboard() {
 		}),
 	).pipe(Effect.map((response) => response.data.users));
 
-	const leaderboard = Effect.all([fetchHackerReviews, fetchSupabaseUsers], {
-		concurrency: "unbounded",
-	}).pipe(
-		Effect.map(([reviews, users]) => {
-			const reviewCounts = reviews.reduce<Record<string, number>>(
-				(count, review) => {
-					const reviewer = review.reviewerId;
-					count[reviewer] = (count[reviewer] ?? 0) + 1;
-					return count;
-				},
-				{},
-			);
+	const leaderboard = Effect.all(
+		[fetchHackerReviews, fetchJudgeReviews, fetchSupabaseUsers],
+		{
+			concurrency: "unbounded",
+		},
+	).pipe(
+		Effect.map(([hackerReviews, judgeReviews, users]) => {
+			const reviewCounts = hackerReviews.reduce<
+				Record<string, { hacker: number; judge: number }>
+			>((counts, review) => {
+				const reviewer = review.reviewerId;
+				if (counts[reviewer]) {
+					counts[reviewer].hacker += 1;
+				} else {
+					counts[reviewer] = { hacker: 1, judge: 0 };
+				}
+				return counts;
+			}, {});
+
+			judgeReviews.forEach((review) => {
+				const reviewer = review.reviewerId;
+				if (reviewCounts[reviewer]) {
+					reviewCounts[reviewer].judge += 1;
+				} else {
+					reviewCounts[reviewer] = { hacker: 0, judge: 1 };
+				}
+			});
 
 			return (users as User[]).reduce(
 				(leaderboard: LeaderboardView[], user) => {
-					const entry = reviewCounts[user.id];
-					if (entry) {
+					const hackerEntry = reviewCounts[user.id];
+					const judgeEntry = reviewCounts[user.id];
+					if (hackerEntry || judgeEntry) {
 						leaderboard.push({
 							email: user.email ?? "",
 							full_name: user.user_metadata?.full_name ?? "",
-							applications_reviewed: entry,
+							hacker_applications_reviewed:
+								hackerEntry.hacker ?? 0,
+							judge_applications_reviewed: judgeEntry.judge ?? 0,
 						});
 					}
 					return leaderboard;

@@ -205,7 +205,31 @@ export const fetchHackerReviews = Effect.gen(function* () {
 		Effect.flatMap((records) =>
 			Effect.allSuccesses(
 				records.map((record) =>
-					Schema.decodeUnknown(Review)(record.fields),
+					Schema.decodeUnknown(Review)({
+						id: record.id,
+						...record.fields,
+					}),
+				),
+			),
+		),
+	);
+}).pipe(
+	Effect.tapErrorCause((error) => Console.error(error)),
+	Effect.withLogSpan("lib/utils/airtable/fetchHackerReviews"),
+);
+
+export const fetchJudgeReviews = Effect.gen(function* () {
+	const db = yield* AirtableDb;
+	const reviewsTable = db.table("Judge Reviews");
+
+	return yield* Effect.tryPromise(() => reviewsTable.select().all()).pipe(
+		Effect.flatMap((records) =>
+			Effect.allSuccesses(
+				records.map((record) =>
+					Schema.decodeUnknown(Review)({
+						id: record.id,
+						...record.fields,
+					}),
 				),
 			),
 		),
