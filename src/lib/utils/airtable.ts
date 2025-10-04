@@ -72,9 +72,8 @@ export const findHackerApplication = Effect.gen(function* () {
 							}),
 						),
 					).pipe(
-						// Effect.flatMap(Random.shuffle),
-						// Effect.map(Chunk.head),
-						Effect.map(EffectArray.head),
+						Effect.flatMap(Random.shuffle),
+						Effect.map(Chunk.head),
 						Effect.tap(
 							Option.match({
 								onNone: () => paginate(),
