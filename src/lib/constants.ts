@@ -2,7 +2,7 @@ export const EventStartDate = new Date("2025-10-24");
 
 export const LogisticsTeamEmails = [
 	"flora@hackberkeley.org",
-	"sampoder@hackberkeley.org ",
+	"sampoder@hackberkeley.org",
 	"darren@hackberkeley.org",
 	"valerie@hackberkeley.org",
 	"prabhas@hackberkeley.org",
