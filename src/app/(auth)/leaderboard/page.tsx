@@ -50,13 +50,17 @@ export default async function Leaderboard() {
 				(leaderboard: LeaderboardView[], user) => {
 					const hackerEntry = reviewCounts[user.id];
 					const judgeEntry = reviewCounts[user.id];
-					if (hackerEntry || judgeEntry) {
+					if (
+						hackerEntry ||
+						judgeEntry ||
+						user.email?.endsWith("@hackberkeley.org")
+					) {
 						leaderboard.push({
 							email: user.email ?? "",
 							full_name: user.user_metadata?.full_name ?? "",
 							hacker_applications_reviewed:
-								hackerEntry.hacker ?? 0,
-							judge_applications_reviewed: judgeEntry.judge ?? 0,
+								hackerEntry?.hacker ?? 0,
+							judge_applications_reviewed: judgeEntry?.judge ?? 0,
 						});
 					}
 					return leaderboard;
