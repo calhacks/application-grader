@@ -4,6 +4,7 @@ import {
 	Console,
 	Effect,
 	Array as EffectArray,
+	Match,
 	Option,
 	Random,
 	Redacted,
@@ -19,6 +20,7 @@ import {
 	ApplicationReviewNeeded,
 	ApplicationStatus,
 	type ApplicationType,
+	Decision,
 	Review,
 	StatusAccept,
 	StatusDeferred,
@@ -305,9 +307,24 @@ export const hackerProgressStatistics = Effect.gen(function* () {
 		(review) => review.email,
 	);
 
+	// The reason why I calculate the number of accepted
+	// applications instead of using `applicationByStatus`
+	// is because the applications table has some leftover
+	// accepted applications that did not confirm by the
+	// deadline (hence inflating the total acceptance number).
+	const applicationAccepts = EffectArray.countBy(
+		Object.values(reviewsByEmail),
+		(reviews) =>
+			Option.isSome(
+				EffectArray.findFirst(
+					reviews,
+					(review) => review.decision === "accept",
+				),
+			),
+	);
+
 	return {
-		acceptedApplications:
-			applicationsByStatus[StatusAccept.literals[0]]?.length || 0,
+		acceptedApplications: applicationAccepts || 0,
 		rejectedApplications:
 			applicationsByStatus[StatusRejected.literals[0]]?.length || 0,
 		deferredApplications:

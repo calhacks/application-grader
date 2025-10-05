@@ -1,7 +1,14 @@
 "use client";
 
 import { type ReactNode, use } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Tooltip,
 	TooltipContent,
@@ -23,15 +30,11 @@ export function HackerStatisticsCard(props: HackerStatisticsCardProps) {
 	const statistics = use(props.statistics);
 
 	const acceptedPercentage = (
-		(statistics.acceptedApplications / statistics.totalApplications) *
+		(statistics.acceptedApplications / statistics.applicationsBegan) *
 		100
 	).toFixed(1);
 	const rejectedPercentage = (
-		(statistics.rejectedApplications / statistics.totalApplications) *
-		100
-	).toFixed(1);
-	const deferredPercentage = (
-		(statistics.deferredApplications / statistics.totalApplications) *
+		(statistics.rejectedApplications / statistics.applicationsBegan) *
 		100
 	).toFixed(1);
 	const applicationsBeganPercentage = (
@@ -48,6 +51,11 @@ export function HackerStatisticsCard(props: HackerStatisticsCardProps) {
 		<Card>
 			<CardHeader>
 				<CardTitle>Applications Progress</CardTitle>
+				<CardDescription>
+					<b>Note:</b> Current decision criteria is{" "}
+					<span className="font-mono">1 Accept</span> or{" "}
+					<span className="font-mono">2 Reject</span>.
+				</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<div className="border-t border-neutral-200">
@@ -62,7 +70,7 @@ export function HackerStatisticsCard(props: HackerStatisticsCardProps) {
 									</TooltipTrigger>
 									<TooltipContent className="font-mono">
 										accepted_applications /
-										total_applications
+										regular_round_applications
 									</TooltipContent>
 								</Tooltip>
 							}
@@ -77,25 +85,23 @@ export function HackerStatisticsCard(props: HackerStatisticsCardProps) {
 									</TooltipTrigger>
 									<TooltipContent className="font-mono">
 										rejected_applications /
-										total_applications
+										regular_round_applications
 									</TooltipContent>
 								</Tooltip>
 							}
 						/>
 						<Statistic
-							label="Deferred Applications"
-							value={
+							label={
 								<Tooltip>
 									<TooltipTrigger className="underline underline-offset-2 decoration-1 decoration-dotted decoration-black">
-										{statistics.deferredApplications},{" "}
-										{deferredPercentage}%
+										Deferred Applications
 									</TooltipTrigger>
 									<TooltipContent className="font-mono">
-										deferred_applications /
-										total_applications
+										deferred priority applicants
 									</TooltipContent>
 								</Tooltip>
 							}
+							value={statistics.deferredApplications}
 						/>
 						<Statistic
 							label="Applications Began"
@@ -130,31 +136,31 @@ export function HackerStatisticsCard(props: HackerStatisticsCardProps) {
 							}
 						/>
 						<Statistic
-							label="Regular Round Applications"
-							value={
+							label={
 								<Tooltip>
 									<TooltipTrigger className="underline underline-offset-2 decoration-1 decoration-dotted decoration-black">
-										{statistics.regularRoundApplications}
+										Regular Round Applications
 									</TooltipTrigger>
 									<TooltipContent className="font-mono">
 										# of applications submitted during
-										Regular Round
+										regular round
 									</TooltipContent>
 								</Tooltip>
 							}
+							value={statistics.regularRoundApplications}
 						/>
 						<Statistic
-							label="Total Applications"
-							value={
+							label={
 								<Tooltip>
 									<TooltipTrigger className="underline underline-offset-2 decoration-1 decoration-dotted decoration-black">
-										{statistics.totalApplications}
+										Total Applications
 									</TooltipTrigger>
 									<TooltipContent className="font-mono">
-										Total # of applications submitted
+										total # of applications submitted
 									</TooltipContent>
 								</Tooltip>
 							}
+							value={statistics.totalApplications}
 						/>
 					</dl>
 				</div>
@@ -282,7 +288,7 @@ export function JudgeStatisticsCard(props: JudgeStatisticsCardProps) {
 }
 
 interface StatisticProps {
-	label: string;
+	label: ReactNode;
 	value: ReactNode;
 }
 
@@ -301,50 +307,28 @@ export function StatisticsCardSkeleton() {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Priority Applications Progress</CardTitle>
+				<CardTitle>
+					<Skeleton className="h-4 w-40" />
+				</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div className="border-t border-neutral-200">
 					<dl className="divide-y divide-neutral-200">
 						<Statistic
-							label="Accepted Applications"
-							value={
-								<span className="font-mono text-sm">
-									loading...
-								</span>
-							}
+							label={<Skeleton className="h-4 w-15" />}
+							value={<Skeleton className="h-4 w-40" />}
 						/>
 						<Statistic
-							label="Rejected Applications"
-							value={
-								<span className="font-mono text-sm">
-									loading...
-								</span>
-							}
+							label={<Skeleton className="h-4 w-15" />}
+							value={<Skeleton className="h-4 w-40" />}
 						/>
 						<Statistic
-							label="Deferred Applications"
-							value={
-								<span className="font-mono text-sm">
-									loading...
-								</span>
-							}
+							label={<Skeleton className="h-4 w-15" />}
+							value={<Skeleton className="h-4 w-40" />}
 						/>
 						<Statistic
-							label="Applications Began"
-							value={
-								<span className="font-mono text-sm">
-									loading...
-								</span>
-							}
-						/>
-						<Statistic
-							label="Total Applications"
-							value={
-								<span className="font-mono text-sm">
-									loading...
-								</span>
-							}
+							label={<Skeleton className="h-4 w-15" />}
+							value={<Skeleton className="h-4 w-40" />}
 						/>
 					</dl>
 				</div>
