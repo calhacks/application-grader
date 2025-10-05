@@ -176,11 +176,11 @@ export function JudgeStatisticsCard(props: JudgeStatisticsCardProps) {
 	const statistics = use(props.statistics);
 
 	const acceptedPercentage = (
-		(statistics.acceptedApplications / statistics.totalApplications) *
+		(statistics.acceptedApplications / statistics.applicationsBegan) *
 		100
 	).toFixed(1);
 	const rejectedPercentage = (
-		(statistics.rejectedApplications / statistics.totalApplications) *
+		(statistics.rejectedApplications / statistics.applicationsBegan) *
 		100
 	).toFixed(1);
 	const applicationsBeganPercentage = (
@@ -211,7 +211,7 @@ export function JudgeStatisticsCard(props: JudgeStatisticsCardProps) {
 									</TooltipTrigger>
 									<TooltipContent className="font-mono">
 										accepted_applications /
-										total_applications
+										applications_began
 									</TooltipContent>
 								</Tooltip>
 							}
@@ -226,7 +226,7 @@ export function JudgeStatisticsCard(props: JudgeStatisticsCardProps) {
 									</TooltipTrigger>
 									<TooltipContent className="font-mono">
 										rejected_applications /
-										total_applications
+										applications_began
 									</TooltipContent>
 								</Tooltip>
 							}
