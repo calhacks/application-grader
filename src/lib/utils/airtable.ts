@@ -56,7 +56,8 @@ export const findHackerApplication = Effect.gen(function* () {
           {Review needed} = 1,
           {Reviewer 1} != "${user.id}",
           {Reviewer 2} != "${user.id}",
-          {Reviewer 3} != "${user.id}"
+          {Reviewer 3} != "${user.id}",
+          {Created at} < DATETIME_PARSE("2025-10-03 07:00", "YYYY-MM-DD HH:mm")
         )`,
 				pageSize: 100,
 			})
@@ -248,7 +249,8 @@ export const hackerProgressStatistics = Effect.gen(function* () {
 		applicationsTable
 			.select({
 				filterByFormula: `AND(
-          {Role} = "Hacker"
+          {Role} = "Hacker",
+          {Created at} < DATETIME_PARSE("2025-10-03 07:00", "YYYY-MM-DD HH:mm")
         )`,
 				fields: [
 					ApplicationEmail.literals[0],
