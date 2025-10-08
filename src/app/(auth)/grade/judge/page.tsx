@@ -23,6 +23,8 @@ export default async function Grade() {
 	);
 	const statistics = judgeProgressStatistics.pipe(Effect.runPromise);
 
+	console.log(await statistics);
+
 	if (!user.email || !LogisticsTeamEmails.includes(user.email)) {
 		redirect("/grade");
 	}

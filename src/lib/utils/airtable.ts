@@ -18,6 +18,7 @@ import {
 	ApplicationEmail,
 	ApplicationReviewNeeded,
 	ApplicationStatus,
+	ApplicationStatusPrivate,
 	type ApplicationType,
 	Review,
 	StatusAccept,
@@ -254,7 +255,7 @@ export const hackerProgressStatistics = Effect.gen(function* () {
         )`,
 				fields: [
 					ApplicationEmail.literals[0],
-					ApplicationStatus.literals[0],
+					ApplicationStatusPrivate.literals[0],
 					ApplicationReviewNeeded.literals[0],
 				],
 			})
@@ -264,7 +265,11 @@ export const hackerProgressStatistics = Effect.gen(function* () {
 			Effect.allSuccesses(
 				records.map((record) =>
 					Schema.decodeUnknown(
-						Application.pick("email", "status", "reviewNeeded"),
+						Application.pick(
+							"email",
+							"statusPrivate",
+							"reviewNeeded",
+						),
 					)(record.fields),
 				),
 			),
@@ -293,7 +298,7 @@ export const hackerProgressStatistics = Effect.gen(function* () {
 
 	const applicationsByStatus = EffectArray.groupBy(
 		applications,
-		(application) => application.status ?? "No Status",
+		(application) => application.statusPrivate ?? "No Status",
 	);
 
 	const [_applicationsReviewed, applicationsNotReviewed] =
@@ -351,7 +356,7 @@ export const judgeProgressStatistics = Effect.gen(function* () {
         )`,
 				fields: [
 					ApplicationEmail.literals[0],
-					ApplicationStatus.literals[0],
+					ApplicationStatusPrivate.literals[0],
 					ApplicationReviewNeeded.literals[0],
 				],
 			})
@@ -361,7 +366,11 @@ export const judgeProgressStatistics = Effect.gen(function* () {
 			Effect.allSuccesses(
 				records.map((record) =>
 					Schema.decodeUnknown(
-						Application.pick("email", "status", "reviewNeeded"),
+						Application.pick(
+							"email",
+							"statusPrivate",
+							"reviewNeeded",
+						),
 					)(record.fields),
 				),
 			),
@@ -371,7 +380,7 @@ export const judgeProgressStatistics = Effect.gen(function* () {
 
 	const applicationsByStatus = EffectArray.groupBy(
 		applications,
-		(application) => application.status ?? "No Status",
+		(application) => application.statusPrivate ?? "No Status",
 	);
 
 	return {

@@ -65,6 +65,7 @@ export const ApplicationReviewer2 = Schema.Literal("Reviewer 2");
 export const ApplicationReviewer3 = Schema.Literal("Reviewer 3");
 export const ApplicationCreatedAt = Schema.Literal("Created at");
 export const ApplicationReviewNeeded = Schema.Literal("Review needed");
+export const ApplicationStatusPrivate = Schema.Literal("Status (private)");
 
 export const ApplicationColumns = Schema.Union(
 	ApplicationEmail,
@@ -107,6 +108,7 @@ export const ApplicationColumns = Schema.Union(
 	ApplicationReviewer3,
 	ApplicationCreatedAt,
 	ApplicationReviewNeeded,
+	ApplicationStatusPrivate,
 );
 
 export type ApplicationColumns = typeof ApplicationColumns.Type;
@@ -263,6 +265,9 @@ export const Application = Schema.Struct({
 	),
 	reviewNeeded: Schema.optional(Schema.Number).pipe(
 		Schema.fromKey(ApplicationReviewNeeded.literals[0]),
+	),
+	statusPrivate: Schema.optional(Status).pipe(
+		Schema.fromKey(ApplicationStatusPrivate.literals[0]),
 	),
 });
 
